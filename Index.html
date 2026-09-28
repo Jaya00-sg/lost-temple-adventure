@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lost Temple Adventure</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #101820;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    button {
+      width: 220px;
+      padding: 15px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+    }
+
+    #createBtn {
+      background: #d99b35;
+      color: white;
+    }
+
+    #joinBtn {
+      background: #3b82f6;
+      color: white;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 17px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="screen">
+
+    <h1>🏛️ Lost Temple Adventure</h1>
+
+    <p>👥 2 Player Co-op Adventure</p>
+
+    <button id="createBtn">🎮 Create Room</button>
+
+    <button id="joinBtn">🔗 Join Room</button>
+
+    <div id="message">Connecting to Firebase...</div>
+
+  </div>
+
+
+  <script type="module">
+
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+
+    import { getDatabase, ref, set, get }
+  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+
+    // YOUR FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "PASTE_YOUR_API_KEY",
+      authDomain: "PASTE_YOUR_AUTH_DOMAIN",
+      projectId: "PASTE_YOUR_PROJECT_ID",
+      storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
+      messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
+      appId: "PASTE_YOUR_APP_ID"
+    };
+
+
+    // Start Firebase
+    const app = initializeApp(firebaseConfig);
+
+    // Connect Realtime Database
+    const db = getDatabase(
+  app,
+  "https://lost-temple-adventure-default-rtdb.asia-southeast1.firebasedatabase.app"
+);
+
+
+    document.getElementById("message").innerText =
+      "🔥 Firebase connected!";
+
+
+    document.getElementById("createBtn").onclick = async function() {
+
+      const roomCode =
+        Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      try {
+
+        await set(ref(db, "rooms/" + roomCode), {
+          player1: "waiting",
+          player2: null,
+          status: "waiting"
+        });
+
+        document.getElementById("message").innerText =
+          "🎮 Room created: " + roomCode;
+
+      } catch (error) {
+
+        document.getElementById("message").innerText =
+          "❌ Firebase error: " + error.message;
+
+      }
+
+    };
+
+
+    document.getElementById("joinBtn").onclick = async function() {
+
+  const roomCode = prompt("🔗 Enter Room Code:");
+
+  if (!roomCode) return;
+
+  const code = roomCode.trim().toUpperCase();
+
+  document.getElementById("message").innerText =
+    "⏳ Checking room...";
+
+  try {
+
+    const roomRef = ref(db, "rooms/" + code);
+    const snapshot = await get(roomRef);
+
+    if (!snapshot.exists()) {
+
+      document.getElementById("message").innerText =
+        "❌ Room not found.";
+
+      return;
+    }
+
+    const room = snapshot.val();
+
+    if (room.player2 !== null) {
+
+      document.getElementById("message").innerText =
+        "❌ Room is full.";
+
+      return;
+    }
+
+    await set(ref(db, "rooms/" + code + "/player2"), "joined");
+
+    document.getElementById("message").innerText =
+      "✅ Joined Room: " + code;
+
+  } catch (error) {
+
+    document.getElementById("message").innerText =
+      "❌ Error: " + error.message;
+
+  }
+
+};
+
+  </script>
+
+</body>
+</html>
