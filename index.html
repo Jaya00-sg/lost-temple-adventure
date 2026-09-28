@@ -15,19 +15,18 @@
 
     .screen {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
+      padding: 25px 15px;
+      box-sizing: border-box;
     }
 
     button {
       width: 220px;
-      padding: 15px;
-      margin: 10px;
-      font-size: 18px;
+      padding: 14px;
+      margin: 8px;
+      font-size: 17px;
       border: none;
       border-radius: 10px;
+      cursor: pointer;
     }
 
     #createBtn {
@@ -35,31 +34,251 @@
       color: white;
     }
 
-    #joinBtn {
-      background: #3b82f6;
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 10;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .box {
+      background: #18242d;
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 25px 20px;
+      border-radius: 15px;
+      box-sizing: border-box;
+    }
+
+    input {
+      width: 90%;
+      padding: 13px;
+      margin: 8px;
+      border-radius: 8px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    .passwordBox {
+      position: relative;
+      width: 90%;
+      margin: auto;
+    }
+
+    .passwordBox input {
+      width: 100%;
+      margin: 8px 0;
+      padding-right: 50px;
+    }
+
+    .eyeBtn {
+      position: absolute;
+      right: 5px;
+      top: 7px;
+      width: 45px;
+      padding: 10px 5px;
+      margin: 0;
+      background: transparent;
       color: white;
+      font-size: 18px;
+    }
+
+    .room {
+      background: #1c2b35;
+      margin: 10px auto;
+      padding: 15px;
+      max-width: 450px;
+      border-radius: 10px;
+      text-align: left;
+    }
+
+    .room button {
+      width: 120px;
+      padding: 10px;
+      float: right;
+      margin-top: -35px;
+    }
+
+    .open {
+      color: #4ade80;
+    }
+
+    .private {
+      color: #fbbf24;
     }
 
     #message {
       margin-top: 20px;
       font-size: 17px;
     }
+
+    #createBtn {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    hr {
+      border-color: #45545f;
+    }
   </style>
 </head>
 
 <body>
 
+  <!-- MAIN SCREEN -->
   <div class="screen">
 
     <h1>🏛️ Lost Temple Adventure</h1>
 
     <p>👥 2 Player Co-op Adventure</p>
 
-    <button id="createBtn">🎮 Create Room</button>
+    <h2>🎮 Available Rooms</h2>
 
-    <button id="joinBtn">🔗 Join Room</button>
+    <div id="roomList">
+      <p>Loading rooms...</p>
+    </div>
 
-    <div id="message">Connecting to Firebase...</div>
+    <div id="message"></div>
+
+    <button id="createBtn">🎮 CREATE ROOM</button>
+
+  </div>
+
+
+  <!-- CREATE ROOM -->
+  <div id="createOverlay" class="overlay">
+
+    <div class="box">
+
+      <h2>🎮 CREATE ROOM</h2>
+
+      <input
+        id="roomName"
+        type="text"
+        placeholder="Enter Room Name"
+      >
+
+      <br>
+
+      <button id="openRoomBtn">
+        🔓 OPEN ROOM
+      </button>
+
+      <button id="privateRoomBtn">
+        🔒 PRIVATE ROOM
+      </button>
+
+      <div id="privatePassword" style="display:none;">
+
+        <div class="passwordBox">
+
+          <input
+            id="roomPassword"
+            type="password"
+            placeholder="Enter Password"
+          >
+
+          <button
+            id="passwordEye"
+            class="eyeBtn"
+            type="button"
+          >👁️</button>
+
+        </div>
+
+      </div>
+
+      <br>
+
+      <button id="createRoomBtn">
+        CREATE
+      </button>
+
+      <button id="cancelBtn">
+        CANCEL
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- PRIVATE ROOM JOIN -->
+  <div id="joinOverlay" class="overlay">
+
+    <div class="box">
+
+      <h2>🔒 PRIVATE ROOM</h2>
+
+      <p>Enter room password</p>
+
+      <div class="passwordBox">
+
+        <input
+          id="joinPassword"
+          type="password"
+          placeholder="Password"
+        >
+
+        <button
+          id="joinPasswordEye"
+          class="eyeBtn"
+          type="button"
+        >👁️</button>
+
+      </div>
+
+      <button id="joinConfirmBtn">
+        JOIN
+      </button>
+
+      <button id="joinCancelBtn">
+        CANCEL
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- PLAYER LOBBY -->
+  <div id="lobbyOverlay" class="overlay">
+
+    <div class="box">
+
+      <h2>🏛️ LOST TEMPLE ADVENTURE</h2>
+
+      <p id="lobbyRoomName">Room</p>
+
+      <hr>
+
+      <p>👤 PLAYER 1</p>
+      <p id="player1Status">🟡 Waiting...</p>
+
+      <p>👤 PLAYER 2</p>
+      <p id="player2Status">🟡 Waiting...</p>
+
+      <br>
+
+      <button id="readyBtn">
+        ✅ READY
+      </button>
+
+      <button id="startGameBtn" style="display:none;">
+        ▶️ START GAME
+      </button>
+
+      <button id="leaveRoomBtn">
+        🚪 LEAVE ROOM
+      </button>
+
+    </div>
 
   </div>
 
@@ -69,110 +288,959 @@
     import { initializeApp }
       from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
-    import { getDatabase, ref, set, get }
-  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      onValue
+    }
+      from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 
 
-    // YOUR FIREBASE CONFIG
+    /* FIREBASE */
+
     const firebaseConfig = {
-      apiKey: "PASTE_YOUR_API_KEY",
-      authDomain: "PASTE_YOUR_AUTH_DOMAIN",
-      projectId: "PASTE_YOUR_PROJECT_ID",
-      storageBucket: "PASTE_YOUR_STORAGE_BUCKET",
-      messagingSenderId: "PASTE_YOUR_MESSAGING_SENDER_ID",
-      appId: "PASTE_YOUR_APP_ID"
+
+      apiKey: "AIzaSyDFy3r2oNPUl6j8PJfGqNz18RABWnLnftE",
+
+      authDomain:
+        "lost-temple-adventure.firebaseapp.com",
+
+      projectId:
+        "lost-temple-adventure",
+
+      storageBucket:
+        "lost-temple-adventure.firebasestorage.app",
+
+      messagingSenderId:
+        "666915763996",
+
+      appId:
+        "G-86TK8X9N12",
+
+      databaseURL:
+        "https://lost-temple-adventure-default-rtdb.asia-southeast1.firebasedatabase.app"
+
     };
 
 
-    // Start Firebase
     const app = initializeApp(firebaseConfig);
 
-    // Connect Realtime Database
-    const db = getDatabase(
-  app,
-  "https://lost-temple-adventure-default-rtdb.asia-southeast1.firebasedatabase.app"
-);
+    const db = getDatabase(app);
 
 
-    document.getElementById("message").innerText =
-      "🔥 Firebase connected!";
+    /* MAIN ELEMENTS */
+
+    const createBtn =
+      document.getElementById("createBtn");
+
+    const createOverlay =
+      document.getElementById("createOverlay");
+
+    const roomName =
+      document.getElementById("roomName");
+
+    const openRoomBtn =
+      document.getElementById("openRoomBtn");
+
+    const privateRoomBtn =
+      document.getElementById("privateRoomBtn");
+
+    const privatePassword =
+      document.getElementById("privatePassword");
+
+    const roomPassword =
+      document.getElementById("roomPassword");
+
+    const passwordEye =
+      document.getElementById("passwordEye");
+
+    const createRoomBtn =
+      document.getElementById("createRoomBtn");
+
+    const cancelBtn =
+      document.getElementById("cancelBtn");
+
+    const roomList =
+      document.getElementById("roomList");
+
+    const message =
+      document.getElementById("message");
 
 
-    document.getElementById("createBtn").onclick = async function() {
+    /* JOIN ELEMENTS */
 
-      const roomCode =
-        Math.random().toString(36).substring(2, 8).toUpperCase();
+    const joinOverlay =
+      document.getElementById("joinOverlay");
 
-      try {
+    const joinPassword =
+      document.getElementById("joinPassword");
 
-        await set(ref(db, "rooms/" + roomCode), {
-          player1: "waiting",
-          player2: null,
-          status: "waiting"
-        });
+    const joinPasswordEye =
+      document.getElementById("joinPasswordEye");
 
-        document.getElementById("message").innerText =
-          "🎮 Room created: " + roomCode;
+    const joinConfirmBtn =
+      document.getElementById("joinConfirmBtn");
 
-      } catch (error) {
+    const joinCancelBtn =
+      document.getElementById("joinCancelBtn");
 
-        document.getElementById("message").innerText =
-          "❌ Firebase error: " + error.message;
+
+    /* LOBBY ELEMENTS */
+
+    const readyBtn =
+      document.getElementById("readyBtn");
+
+    const startGameBtn =
+      document.getElementById("startGameBtn");
+
+    const leaveRoomBtn =
+      document.getElementById("leaveRoomBtn");
+
+
+    /* VARIABLES */
+
+    let selectedRoomType = "open";
+
+    let selectedRoomCode = null;
+
+    let selectedRoomData = null;
+
+    let currentRoomCode = null;
+
+    let currentPlayer = null;
+
+
+    /* CREATE ROOM SCREEN */
+
+    createBtn.onclick = function () {
+
+      createOverlay.style.display = "block";
+
+      roomName.value = "";
+
+      roomPassword.value = "";
+
+      roomPassword.type = "password";
+
+      passwordEye.innerText = "👁️";
+
+      selectedRoomType = "open";
+
+      privatePassword.style.display = "none";
+
+    };
+
+
+    /* OPEN ROOM */
+
+    openRoomBtn.onclick = function () {
+
+      selectedRoomType = "open";
+
+      privatePassword.style.display = "none";
+
+    };
+
+
+    /* PRIVATE ROOM */
+
+    privateRoomBtn.onclick = function () {
+
+      selectedRoomType = "private";
+
+      privatePassword.style.display = "block";
+
+    };
+
+
+    /* PASSWORD EYE */
+
+    passwordEye.onclick = function () {
+
+      if (roomPassword.type === "password") {
+
+        roomPassword.type = "text";
+
+        passwordEye.innerText = "🙈";
+
+      } else {
+
+        roomPassword.type = "password";
+
+        passwordEye.innerText = "👁️";
 
       }
 
     };
 
 
-    document.getElementById("joinBtn").onclick = async function() {
+    /* CANCEL CREATE */
 
-  const roomCode = prompt("🔗 Enter Room Code:");
+    cancelBtn.onclick = function () {
 
-  if (!roomCode) return;
+      createOverlay.style.display = "none";
 
-  const code = roomCode.trim().toUpperCase();
+    };
 
-  document.getElementById("message").innerText =
-    "⏳ Checking room...";
 
-  try {
+    /* ROOM CODE */
 
-    const roomRef = ref(db, "rooms/" + code);
-    const snapshot = await get(roomRef);
+    function generateRoomCode() {
 
-    if (!snapshot.exists()) {
+      const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-      document.getElementById("message").innerText =
-        "❌ Room not found.";
+      let code = "";
 
-      return;
+      for (let i = 0; i < 6; i++) {
+
+        code +=
+          chars.charAt(
+            Math.floor(Math.random() * chars.length)
+          );
+
+      }
+
+      return code;
+
     }
 
-    const room = snapshot.val();
 
-    if (room.player2 !== null) {
+    /* CREATE ROOM */
 
-      document.getElementById("message").innerText =
-        "❌ Room is full.";
+    createRoomBtn.onclick = async function () {
 
-      return;
+      const name =
+        roomName.value.trim();
+
+      const password =
+        roomPassword.value.trim();
+
+
+      if (!name) {
+
+        alert("Please enter a room name.");
+
+        return;
+
+      }
+
+
+      if (
+        selectedRoomType === "private"
+        &&
+        !password
+      ) {
+
+        alert("Please enter a password.");
+
+        return;
+
+      }
+
+
+      const roomCode =
+        generateRoomCode();
+
+
+      const roomData = {
+
+        roomName: name,
+
+        type: selectedRoomType,
+
+        password:
+          selectedRoomType === "private"
+            ? password
+            : "",
+
+        player1: "waiting",
+
+        player2: null,
+
+        player1Ready: false,
+
+        player2Ready: false,
+
+        status: "waiting"
+
+      };
+
+
+      try {
+
+        await set(
+          ref(db, "rooms/" + roomCode),
+          roomData
+        );
+
+
+        currentRoomCode =
+          roomCode;
+
+        currentPlayer =
+          "player1";
+
+
+        document.getElementById(
+          "lobbyRoomName"
+        ).innerText =
+          "🏛️ " + name;
+
+
+        document.getElementById(
+          "player1Status"
+        ).innerText =
+          "🟢 Connected";
+
+
+        document.getElementById(
+          "player2Status"
+        ).innerText =
+          "🟡 Waiting for Player 2";
+
+
+        createOverlay.style.display =
+          "none";
+
+
+        document.getElementById(
+          "lobbyOverlay"
+        ).style.display =
+          "block";
+
+
+        message.innerText =
+          "🎮 Room created: " + name;
+
+
+      } catch (error) {
+
+        alert(
+          "❌ Could not create room."
+        );
+
+        console.error(error);
+
+      }
+
+    };
+
+
+    /* PRIVATE JOIN EYE */
+
+    joinPasswordEye.onclick = function () {
+
+      if (
+        joinPassword.type === "password"
+      ) {
+
+        joinPassword.type = "text";
+
+        joinPasswordEye.innerText =
+          "🙈";
+
+      } else {
+
+        joinPassword.type = "password";
+
+        joinPasswordEye.innerText =
+          "👁️";
+
+      }
+
+    };
+
+
+    /* CANCEL PRIVATE JOIN */
+
+    joinCancelBtn.onclick = function () {
+
+      joinOverlay.style.display =
+        "none";
+
+      joinPassword.value = "";
+
+    };
+
+
+    /* CONFIRM PRIVATE JOIN */
+
+    joinConfirmBtn.onclick =
+      async function () {
+
+        if (!selectedRoomData) {
+
+          return;
+
+        }
+
+
+        if (
+          joinPassword.value !==
+          selectedRoomData.password
+        ) {
+
+          alert("❌ Wrong password.");
+
+          return;
+
+        }
+
+
+        try {
+
+          await set(
+            ref(
+              db,
+              "rooms/" +
+              selectedRoomCode +
+              "/player2"
+            ),
+            "joined"
+          );
+
+
+          await set(
+            ref(
+              db,
+              "rooms/" +
+              selectedRoomCode +
+              "/status"
+            ),
+            "full"
+          );
+
+
+          currentRoomCode =
+            selectedRoomCode;
+
+          currentPlayer =
+            "player2";
+
+
+          document.getElementById(
+            "lobbyRoomName"
+          ).innerText =
+            "🏛️ " +
+            selectedRoomData.roomName;
+
+
+          document.getElementById(
+            "player1Status"
+          ).innerText =
+            "🟢 Connected";
+
+
+          document.getElementById(
+            "player2Status"
+          ).innerText =
+            "🟢 Connected";
+
+
+          joinOverlay.style.display =
+            "none";
+
+
+          document.getElementById(
+            "lobbyOverlay"
+          ).style.display =
+            "block";
+
+
+          joinPassword.value = "";
+
+
+        } catch (error) {
+
+          alert(
+            "❌ Could not join room."
+          );
+
+          console.error(error);
+
+        }
+
+      };
+
+
+    /* AVAILABLE ROOMS */
+
+    onValue(
+      ref(db, "rooms"),
+      (snapshot) => {
+
+        const rooms =
+          snapshot.val();
+
+        roomList.innerHTML = "";
+
+
+        if (!rooms) {
+
+          roomList.innerHTML =
+            "<p>No rooms available.</p>";
+
+          return;
+
+        }
+
+
+        let found = false;
+
+
+        Object.keys(rooms).forEach(
+          (code) => {
+
+            const room =
+              rooms[code];
+
+
+            if (
+              room.status !== "waiting"
+              ||
+              room.player2 !== null
+            ) {
+
+              return;
+
+            }
+
+
+            found = true;
+
+
+            const div =
+              document.createElement("div");
+
+
+            div.className = "room";
+
+
+            const typeText =
+              room.type === "private"
+                ? "🔒 PRIVATE"
+                : "🔓 OPEN";
+
+
+            const typeClass =
+              room.type === "private"
+                ? "private"
+                : "open";
+
+
+            div.innerHTML = `
+
+              <strong>
+                🏛️ ${room.roomName}
+              </strong>
+
+              <br>
+
+              <span class="${typeClass}">
+                ${typeText}
+              </span>
+
+              <br>
+
+              👥 1/2
+
+              <button>
+                JOIN
+              </button>
+
+              <div style="clear:both"></div>
+
+            `;
+
+
+            const joinButton =
+              div.querySelector("button");
+
+
+            joinButton.onclick =
+              function () {
+
+                selectedRoomCode =
+                  code;
+
+                selectedRoomData =
+                  room;
+
+
+                if (
+                  room.type === "private"
+                ) {
+
+                  joinPassword.value =
+                    "";
+
+                  joinPassword.type =
+                    "password";
+
+                  joinPasswordEye.innerText =
+                    "👁️";
+
+                  joinOverlay.style.display =
+                    "block";
+
+                } else {
+
+                  joinOpenRoom();
+
+                }
+
+              };
+
+
+            roomList.appendChild(div);
+
+          }
+        );
+
+
+        if (!found) {
+
+          roomList.innerHTML =
+            "<p>No rooms available.</p>";
+
+        }
+
+      }
+    );
+
+
+    /* OPEN ROOM JOIN */
+
+    async function joinOpenRoom() {
+
+      try {
+
+        await set(
+          ref(
+            db,
+            "rooms/" +
+            selectedRoomCode +
+            "/player2"
+          ),
+          "joined"
+        );
+
+
+        await set(
+          ref(
+            db,
+            "rooms/" +
+            selectedRoomCode +
+            "/status"
+          ),
+          "full"
+        );
+
+
+        currentRoomCode =
+          selectedRoomCode;
+
+        currentPlayer =
+          "player2";
+
+
+        document.getElementById(
+          "lobbyRoomName"
+        ).innerText =
+          "🏛️ " +
+          selectedRoomData.roomName;
+
+
+        document.getElementById(
+          "player1Status"
+        ).innerText =
+          "🟢 Connected";
+
+
+        document.getElementById(
+          "player2Status"
+        ).innerText =
+          "🟢 Connected";
+
+
+        document.getElementById(
+          "lobbyOverlay"
+        ).style.display =
+          "block";
+
+
+      } catch (error) {
+
+        alert(
+          "❌ Could not join room."
+        );
+
+        console.error(error);
+
+      }
+
     }
 
-    await set(ref(db, "rooms/" + code + "/player2"), "joined");
 
-    document.getElementById("message").innerText =
-      "✅ Joined Room: " + code;
+    /* READY */
 
-  } catch (error) {
+    readyBtn.onclick =
+      async function () {
 
-    document.getElementById("message").innerText =
-      "❌ Error: " + error.message;
+        if (!currentRoomCode) {
 
-  }
+          alert(
+            "You are not inside a room."
+          );
 
-};
+          return;
+
+        }
+
+
+        const readyPath =
+          currentPlayer === "player1"
+            ? "player1Ready"
+            : "player2Ready";
+
+
+        await set(
+          ref(
+            db,
+            "rooms/" +
+            currentRoomCode +
+            "/" +
+            readyPath
+          ),
+          true
+        );
+
+
+        readyBtn.innerText =
+          "🟢 READY";
+
+        readyBtn.disabled =
+          true;
+
+      };
+
+
+    /* LOBBY LIVE UPDATE */
+
+    onValue(
+      ref(db, "rooms"),
+      (snapshot) => {
+
+        if (!currentRoomCode) {
+
+          return;
+
+        }
+
+
+        const rooms =
+          snapshot.val();
+
+        const room =
+          rooms
+            ? rooms[currentRoomCode]
+            : null;
+
+
+        if (!room) {
+
+          return;
+
+        }
+
+
+        if (
+          room.player2 === "joined"
+        ) {
+
+          document.getElementById(
+            "player2Status"
+          ).innerText =
+            "🟢 Connected";
+
+        } else {
+
+          document.getElementById(
+            "player2Status"
+          ).innerText =
+            "🟡 Waiting for Player 2";
+
+        }
+
+
+        if (
+          room.player1Ready === true
+        ) {
+
+          if (
+            currentPlayer === "player1"
+          ) {
+
+            readyBtn.innerText =
+              "🟢 READY";
+
+            readyBtn.disabled =
+              true;
+
+          }
+
+        }
+
+
+        if (
+          room.player2Ready === true
+        ) {
+
+          if (
+            currentPlayer === "player2"
+          ) {
+
+            readyBtn.innerText =
+              "🟢 READY";
+
+            readyBtn.disabled =
+              true;
+
+          }
+
+        }
+
+
+        if (
+          room.player1Ready === true
+          &&
+          room.player2Ready === true
+        ) {
+
+          startGameBtn.style.display =
+            "block";
+
+        } else {
+
+          startGameBtn.style.display =
+            "none";
+
+        }
+
+      }
+    );
+
+
+    /* LEAVE ROOM */
+
+    leaveRoomBtn.onclick =
+      async function () {
+
+        if (!currentRoomCode) {
+
+          alert(
+            "You are not inside a room."
+          );
+
+          return;
+
+        }
+
+
+        try {
+
+          const roomRef =
+            ref(
+              db,
+              "rooms/" +
+              currentRoomCode
+            );
+
+
+          if (
+            currentPlayer === "player1"
+          ) {
+
+            await set(
+              roomRef,
+              null
+            );
+
+          } else {
+
+            const roomSnapshot =
+              await get(roomRef);
+
+            const room =
+              roomSnapshot.val();
+
+
+            if (room) {
+
+              await set(
+                roomRef,
+                {
+                  ...room,
+
+                  player2: null,
+
+                  player2Ready: false,
+
+                  status: "waiting"
+
+                }
+              );
+
+            }
+
+          }
+
+
+          currentRoomCode =
+            null;
+
+          currentPlayer =
+            null;
+
+
+          document.getElementById(
+            "lobbyOverlay"
+          ).style.display =
+            "none";
+
+
+          readyBtn.innerText =
+            "✅ READY";
+
+          readyBtn.disabled =
+            false;
+
+
+          startGameBtn.style.display =
+            "none";
+
+
+          message.innerText =
+            "🚪 You left the room.";
+
+
+        } catch (error) {
+
+          alert(
+            "❌ Could not leave room."
+          );
+
+          console.error(error);
+
+        }
+
+      };
+
 
   </script>
 
 </body>
-</html>
+</html>("
